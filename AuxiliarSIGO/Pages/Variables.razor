@@ -1,0 +1,292 @@
+﻿@page "/Variables"
+@inject IConsultas Consultas
+
+<h3>Variables</h3>
+
+<BSButton @onclick="BuscarCentro" Color="BSColor.Success" Size="Size.ExtraSmall">Actualizar Búsqueda <span class="oi oi-magnifying-glass"></span></BSButton>
+<p></p>
+@if (noti=="1")
+{
+    <BSAlert Color="BSColor.Success" IsDismissible="true" @ref="_alertRef" Dismissed="Dismissed">
+    Actualizado.
+</BSAlert>
+}
+
+<p>@mensaje</p>
+
+
+
+<BSContainer>
+    <BSRow Align="Align.Start">
+        @if (CentroTrabajos.Count() > 0)
+        {
+            <BSCol>
+                <BSInput InputType="InputType.Select" @bind-Value="Centro">
+                    @foreach (var c in CentroTrabajos)
+                    {
+                    <option value=@c.CentroTrabajoId>@c.NombreCentroTrabajo</option>
+                    }
+            </BSInput>
+        </BSCol>
+
+
+            <BSCol>
+                @if (BCentro == true)
+                {
+                    <BSButton @onclick="Mostrar" Color="BSColor.Success" Size="Size.ExtraSmall">Buscar Variables <span class="oi oi-magnifying-glass"></span></BSButton>
+                }
+            </BSCol>
+
+        }
+
+
+    </BSRow>
+</BSContainer>
+<p></p>
+<p></p>
+@if (accion == 2)
+{
+
+    <BSContainer>
+
+        <BSRow Align="Align.Start">
+            <BSCol>
+                <BSInput InputType="InputType.Select" @bind-Value="Filtro">
+                    <span class="oi oi-eyedropper"></span>
+                    @foreach (var cod in Codigos)
+                    {
+
+                    <option value=@cod>@cod</option>
+
+                    }
+            </BSInput>
+        </BSCol>
+        <BSCol>
+
+
+        </BSCol>
+    </BSRow>
+
+
+</BSContainer>
+
+    <BSTable IsResponsive="true" IsStriped="true">
+        <BSTHead>
+            <BSTR>
+
+                @*<BSTD>Id</BSTD>*@
+                <BSTD>Código Producto</BSTD>
+                @*<BSTD>Id Variavle</BSTD>*@
+                <BSTD>Punto de Muestreo</BSTD>
+                <BSTD>Variable</BSTD>
+                <BSTD>Unidad</BSTD>
+                <BSTD>Nueva</BSTD>
+                <BSTD>Minimo</BSTD>
+                <BSTD>Nuevo</BSTD>
+                <BSTD>Máximo</BSTD>
+                <BSTD>Nuevo</BSTD>
+                <BSTD>Editar</BSTD>
+
+
+            </BSTR>
+        </BSTHead>
+        <BSTBody>
+
+
+            @foreach (var a in MasterVar)
+            {
+
+
+
+
+
+                if (@a.CalidadId == Filtro)
+                {
+
+                    <BSTR>
+                        @*<BSTD>@a.Id</BSTD>*@
+                        <BSTD>@a.CalidadId</BSTD>
+                        @*<BSTD>@a.VariableId</BSTD>*@
+
+
+
+
+                        @foreach (var b in PuntoMuestreos)
+                        {
+                            if (b.PuntoMuestreoId == a.PuntoMuestreoId)
+                            {
+                                <BSTD>@b.Descripcion</BSTD>
+                            }
+                        }
+
+                        @foreach (var c in Var)
+                        {
+                            if (c.IdVariable == a.VariableId)
+                            {
+                                <BSTD>@c.NombreVariable</BSTD>
+                            }
+                        }
+
+                        @foreach (var d in Unidades)
+                        {
+                            if (d.UnidadId == a.UnidadMedidaId)
+                            {
+                                <BSTD>@d.Expresion</BSTD>
+                            }
+                        }
+                        
+                        <BSTD>
+                            <BSInput InputType="InputType.Select" @bind-Value="@a.UnidadMedidaId">
+                    
+                        @foreach (var d in Unidades)
+                        {                           
+                             <option value=@d.UnidadId>@d.Expresion</option>
+  
+                        } 
+                            </BSInput>
+                        </BSTD>
+
+
+
+
+                        <BSTD>@a.Min</BSTD>
+                        <BSTD><BSInput InputType="InputType.Number" @bind-Value="@a.Min" /></BSTD>
+                        <BSTD>@a.Max</BSTD>
+                        <BSTD><BSInput InputType="InputType.Number" @bind-Value="@a.Max" /></BSTD>
+                        <BSTD>
+
+                            <BSButton @onclick=@(()=>Update(a)) Color="BSColor.Success">@act<span class="oi oi-pencil"></span></BSButton>
+
+                        </BSTD>
+
+
+
+                    </BSTR>
+
+                }
+            }
+        </BSTBody>
+    </BSTable>
+
+
+}
+else if (accion == 1)
+{
+    <p>Cargando...</p>
+}
+
+
+@code {
+
+    string mensaje, act, noti;
+
+    double valor;
+    int accion;
+
+    private int Centro;
+    private string Filtro;
+    private bool BCentro;
+    private IEnumerable<MasterVariable> MasterVar = new List<MasterVariable>();
+    private IEnumerable<Variable> Var = new List<Variable>();
+    private IEnumerable<CentroTrabajo> CentroTrabajos = new List<CentroTrabajo>();
+    private IEnumerable<PuntoMuestreo> PuntoMuestreos = new List<PuntoMuestreo>();
+    private IEnumerable<UnidadMedidum> Unidades = new List<UnidadMedidum>();
+    private IEnumerable<Calidad> Calidades = new List<Calidad>();
+
+
+    private List<string> Codigos;
+
+    private List<int> IdVar = new List<int>();
+    private bool _buttonDisabled = true;
+    BSAlert? _alertRef;
+
+    private void Show()
+    {
+        
+        _buttonDisabled = true;
+        _alertRef?.Open();
+    }
+
+    private void Dismissed()
+    {
+        _buttonDisabled = false;
+    }
+
+    protected async Task BuscarCentro()
+    {
+        try
+        {
+
+            CentroTrabajos = await Consultas.GetCentros(1);
+            BCentro = true;
+            accion = 1;
+
+        }
+        catch (Exception e)
+        {
+            mensaje = "Error al Insertar los datos. " + e;
+
+        }
+    }
+
+    protected async Task Update(MasterVariable MVar)
+    {
+        //MasterVariable MVar = new MasterVariable();
+        //IdVar.Add(id);
+        //MVar.Id = id;
+        //MVar.Min = min.Value;
+        //MVar.Max = max.Value;
+
+        try
+        {
+            act = "Actualizando...";
+            await Consultas.UpdateMasterV(MVar); 
+            noti="1";
+            Show();
+            act = "";
+        }
+        catch (Exception e)
+        {
+            mensaje = ""+e;
+        }
+
+    }
+    protected async Task Mostrar()
+    {
+        MasterVar = await Consultas.GetVariables(Centro);
+        Var = await Consultas.GetNombreVar();
+        PuntoMuestreos = await Consultas.GetMuestreos(1);//Conversion
+        Unidades = await Consultas.GetUnidades();//Conversion
+
+
+        Codigos = new List<string>();
+        Codigos.Add("1");
+        IdVar.Add(0);
+        foreach (var a in MasterVar)
+        {
+            if (Codigos.Last() != a.CalidadId)
+            {
+                Codigos.Add(a.CalidadId);
+            }
+        }
+        Codigos.Remove("1");
+
+        Filtro = Codigos.ElementAt(1);
+
+        Filtrar();
+
+
+
+    }
+
+
+    protected void Filtrar()
+    {
+        accion = 1;
+        accion = 2;
+    }
+
+
+    }
+
+
